@@ -7,33 +7,41 @@ const client = new Client({
 });
 
 // Create index and define mapping
-const createIndex = async () => {
+const createIndex = async (req, res) => {
   try {
     const { body: indexExists } = await client.indices.exists({
       index: "products", // Index name (you can change it accordingly)
     });
 
-    if (!indexExists) {
-      await client.indices.create({
-        index: "products", // Index name (you can change it accordingly)
-        body: {
-          mappings: {
-            properties: {
-              id: { type: "integer" },
-              name: { type: "text" },
-              description: { type: "text" },
-              // Add other fields from your Product schema here
-            },
+    if (indexExists) {
+      return res.send("Index already exists");
+    }
+
+    await client.indices.create({
+      index: "products", // Index name (you can change it accordingly)
+      body: {
+        mappings: {
+          properties: {
+            id: { type: "integer" },
+            name: { type: "text" },
+            description: { type: "text" },
+            // Add other fields from your Product schema here
           },
         },
-      });
+      },
+    });
 
-      console.log("Index created successfully");
-    } else {
-      console.log("Index already exists");
-    }
+    res.send("Index created successfully");
   } catch (error) {
+    if (
+      error.statusCode === 400 &&
+      error.meta?.body?.error?.type === "resource_already_exists_exception"
+    ) {
+      return res.send("Index already exists");
+    }
+
     console.error("Error creating index:", error);
+    res.status(500).send("Failed to create index");
   }
 };
 
