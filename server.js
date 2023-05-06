@@ -9,6 +9,8 @@ const PORT = process.env.PORT || 9012;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/api/v1", require("./router/productRoute"));
+
 const server = app.listen(PORT, () => {
   console.info(`Server running on port ${PORT}`);
 });
